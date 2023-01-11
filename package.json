@@ -2,7 +2,7 @@
   "name": "sops-encrypt",
   "displayName": "sops-encrypt",
   "description": "Quick sops encryption of current file.",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.74.0"
   },
