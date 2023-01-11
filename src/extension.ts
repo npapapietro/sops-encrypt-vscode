@@ -5,6 +5,8 @@ import * as glob from "glob";
 import * as cp from "child_process";
 import * as path from "path";
 
+const config = getConfig();
+
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -17,7 +19,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 function sopsEncrypt() {
   const { activeTextEditor } = vscode.window;
-  const config = getConfig();
 
   if (activeTextEditor && activeTextEditor.document.languageId === "yaml") {
     const {
@@ -25,15 +26,15 @@ function sopsEncrypt() {
     } = activeTextEditor;
 
     if (config.keyLocation) {
-      runEncrypt(config, uri.fsPath);
+      runEncrypt(uri.fsPath);
     } else {
-      const opts = getPublicKeyList(config);
+      const opts = getPublicKeyList();
       if (opts.length > 0) {
         vscode.window
-          .showQuickPick(getPublicKeyList(config), {
+          .showQuickPick(opts, {
             canPickMany: false,
           })
-          .then((result) => runEncrypt(config, uri.fsPath, result));
+          .then((result) => runEncrypt(uri.fsPath, result));
       } else {
         vscode.window.showErrorMessage(
           `Sops error: No public keys with glob "${config.globPattern}" found in workspace.`
@@ -43,7 +44,7 @@ function sopsEncrypt() {
   }
 }
 
-function runEncrypt(config: Config, filename: string, directory?: string) {
+function runEncrypt(filename: string, directory?: string) {
   const runFrom = directory ?? config.keyLocation;
   if (runFrom) {
     const cmd = `${config.binary} --encrypt --in-place ${filename}`;
@@ -58,7 +59,10 @@ function runEncrypt(config: Config, filename: string, directory?: string) {
 
 function handleResultMessage(message: string | null) {
   if (message && message.trim() !== "") {
-    if (message.toLowerCase().includes("warning")) {
+    if (
+      message.toLowerCase().includes("warning") &&
+      config.errorLevel === "warning"
+    ) {
       vscode.window.showWarningMessage(`Sops warning: "${message}".`);
     } else {
       vscode.window.showErrorMessage(`Sops error: "${message}".`);
@@ -70,6 +74,7 @@ type Config = {
   binary: string;
   keyLocation: string | null;
   globPattern: string;
+  errorLevel: string;
 };
 
 function getConfig(): Config {
@@ -78,10 +83,11 @@ function getConfig(): Config {
     binary: config.get("binaryLocation") ?? "sops",
     keyLocation: config.get("pubKeyLocation") ?? null,
     globPattern: config.get("pubKeyGlob") ?? "**/*.pub.asc",
+    errorLevel: config.get("errorLevel") ?? "error",
   };
 }
 
-function getPublicKeyList(config: Config) {
+function getPublicKeyList() {
   return (vscode.workspace.workspaceFolders ?? []).reduce((list, ws) => {
     return [
       ...list,

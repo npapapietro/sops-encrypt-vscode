@@ -50,6 +50,11 @@
           "type": "string",
           "default": "**/*.pub.asc",
           "description": "If pubKeyLocation is not set, will attempt to walk workspace for public keys of this pattern."
+        },
+        "sops-encrypt.errorLevel": {
+          "type": "string",
+          "default": "error",
+          "description": "Error level. Accepts `error` or `warning`"
         }
       }
     }
