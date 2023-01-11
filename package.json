@@ -2,13 +2,14 @@
   "name": "sops-encrypt",
   "displayName": "sops-encrypt",
   "description": "Quick sops encryption of current file.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "engines": {
     "vscode": "^1.74.0"
   },
   "categories": [
     "Other"
   ],
+  "publisher": "npapapietro",
   "activationEvents": [
     "onCommand:sops-encrypt.encrypt"
   ],
